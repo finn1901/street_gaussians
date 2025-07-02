@@ -27,7 +27,9 @@ class Dataset():
         dataset_type = cfg.data.get('type', "Colmap")
         assert dataset_type in sceneLoadTypeCallbacks.keys(), 'Could not recognize scene type!'
         
+        print('initializing SceneInfo')
         scene_info: SceneInfo = sceneLoadTypeCallbacks[dataset_type](self.source_path, **cfg.data)
+        print('Successfully initialized SceneInfo')
 
         if cfg.mode == 'train':
             print(f'Saving input pointcloud to {os.path.join(self.model_path, "input.ply")}')

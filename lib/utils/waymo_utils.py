@@ -23,15 +23,18 @@ _camera2label = {
     'FRONT_RIGHT': 2,
     'SIDE_LEFT': 3,
     'SIDE_RIGHT': 4,
+    'BACK': 5
 }
 
 _label2camera = {
-    0: 'FRONT',
-    1: 'FRONT_LEFT',
-    2: 'FRONT_RIGHT',
-    3: 'SIDE_LEFT',
-    4: 'SIDE_RIGHT',
+    0: 'CAM_FRONT',
+    1: 'CAM_FRONT_LEFT',
+    2: 'CAM_FRONT_RIGHT',
+    3: 'CAM_BACK_LEFT',
+    4: 'CAM_BACK_RIGHT',
+    5: 'CAM_BACK'
 }
+
 image_heights = [1280, 1280, 1280, 886, 886]
 image_widths = [1920, 1920, 1920, 1920, 1920]
 image_filename_to_cam = lambda x: int(x.split('.')[0][-1])
@@ -45,18 +48,18 @@ def load_camera_info(datadir):
     
     intrinsics = []
     extrinsics = []
-    for i in range(5):
+    for i in range(6):
         intrinsic = np.loadtxt(os.path.join(intrinsics_dir,  f"{i}.txt"))
         fx, fy, cx, cy = intrinsic[0], intrinsic[1], intrinsic[2], intrinsic[3]
         intrinsic = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
         intrinsics.append(intrinsic)
         
-    for i in range(5):
+    for i in range(6):
         cam_to_ego = np.loadtxt(os.path.join(extrinsics_dir,  f"{i}.txt"))
         extrinsics.append(cam_to_ego)
     
     ego_frame_poses = []
-    ego_cam_poses = [[] for i in range(5)]
+    ego_cam_poses = [[] for i in range(6)]
     ego_pose_paths = sorted(os.listdir(ego_pose_dir))
     for ego_pose_path in ego_pose_paths:
         
@@ -74,7 +77,7 @@ def load_camera_info(datadir):
     center_point = np.mean(ego_frame_poses[:, :3, 3], axis=0)
     ego_frame_poses[:, :3, 3] -= center_point # [num_frames, 4, 4]
     
-    ego_cam_poses = [np.array(ego_cam_poses[i]) for i in range(5)]
+    ego_cam_poses = [np.array(ego_cam_poses[i]) for i in range(6)]
     ego_cam_poses = np.array(ego_cam_poses)
     ego_cam_poses[:, :, :3, 3] -= center_point # [5, num_frames, 4, 4]
     return intrinsics, extrinsics, ego_frame_poses, ego_cam_poses
@@ -131,7 +134,7 @@ def get_obj_pose_tracking(datadir, selected_frames, ego_poses, cameras=[0, 1, 2,
     start_frame, end_frame = selected_frames[0], selected_frames[1]
 
     image_dir = os.path.join(datadir, 'images')
-    n_cameras = 5
+    n_cameras = 6
     n_images = len(os.listdir(image_dir))
     n_frames = n_images // n_cameras
     n_obj_in_frame = np.zeros(n_frames)
@@ -446,7 +449,6 @@ def generate_dataparser_outputs(
     if not os.path.exists(os.path.join(colmap_basedir, 'triangulated/sparse/model')):
         from script.waymo.colmap_waymo_full import run_colmap_waymo
         run_colmap_waymo(result)
-    
     if build_pointcloud:
         print('build point cloud')
         pointcloud_dir = os.path.join(cfg.model_path, 'input_ply')

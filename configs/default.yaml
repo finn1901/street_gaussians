@@ -1,25 +1,24 @@
 task: waymo_full_exp
-source_path: ./data/waymo/training/031
-exp_name: waymo_train_031
+source_path: ./data/waymo/training/002
+exp_name: waymo_train_002
 
 data:
   split_test: -1
   split_train: 1
   type: Waymo
   white_background: false
-  selected_frames: [0, 198]
-  cameras: [0, 1, 2, 3, 4]
+  selected_frames: [98, 198]
+  cameras: [0, 1, 2]
   extent: 10
   use_colmap: true
   filter_colmap: true
-  box_scale: 1.5
 
 model:
   gaussian:
     sh_degree: 1
     fourier_dim: 5
     fourier_scale: 1.
-    flip_prob: 0.
+    flip_prob: 0.5
   nsg:
     include_bkgd: true
     include_obj: true
@@ -27,10 +26,10 @@ model:
     opt_track: true
 
 train:
-  iterations: 75000
-  test_iterations: [7000, 30000, 50000, 75000]
-  save_iterations: [75000]
-  checkpoint_iterations: [75000]
+  iterations: 50000
+  test_iterations: [7000, 30000, 50000]
+  save_iterations: [50000]
+  checkpoint_iterations: [50000]
 
 optim:
   prune_box_interval: 100
@@ -40,6 +39,7 @@ optim:
   densify_grad_abs_bkgd: True
   densify_grad_threshold_obj: 0.0002
   densify_grad_abs_obj: False
+  densify_grad_threshold: 0.0002
   densify_until_iter: 25000
   feature_lr: 0.0025
   max_screen_size: 20
@@ -58,6 +58,7 @@ optim:
 
   lambda_dssim: 0.2
   lambda_sky: 0.05
+  lambda_sky_scale: [1, 1, 0]
   lambda_mask: 0.1
   lambda_reg: 0.1
   lambda_depth_lidar: 0.1
@@ -72,7 +73,6 @@ optim:
   track_rotation_lr_final: 1.0e-5
   track_rotation_max_steps: 30000
 
-
 render:
   fps: 24
-  concat_cameras: [0, 2, 4]
+  concat_cameras: [1, 0, 2]

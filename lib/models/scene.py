@@ -37,7 +37,8 @@ class Scene:
             
             # Load checkpoint if it exists (this loads other parameters like the optimized tracking poses)
             print("Loading checkpoint at iteration {}".format(self.loaded_iter))
-            checkpoint_path = os.path.join(cfg.trained_model_dir, f"iteration_{str(self.loaded_iter)}.pth")
+            checkpoint_path = os.path.join(cfg.trained_model_dir, f"iteration_{str(self.loaded_iter)}.pth")  
+            print(f'checkpoint path: {checkpoint_path}')
             assert os.path.exists(checkpoint_path)
             state_dict = torch.load(checkpoint_path)
             self.gaussians.load_state_dict(state_dict=state_dict)

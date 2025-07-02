@@ -15,6 +15,8 @@ from lib.utils.waymo_utils import load_camera_info
 from lib.utils.data_utils import get_val_frames
 from lib.utils.colmap_utils import read_extrinsics_binary, qvec2rotmat
 
+import subprocess
+
 image_filename_to_cam = lambda x: int(x.split('/')[0].split('_')[1]) # cam_{cam_id}/{frame}.png
 
 def convert_filename(filename):
@@ -24,6 +26,8 @@ def convert_filename(filename):
     return new_filename
 
 def run_colmap_waymo(result):    
+    os.environ['QT_QPA_PLATFORM'] = 'offscreen'
+
     model_path = cfg.model_path
     data_path = cfg.source_path
     colmap_dir = os.path.join(model_path, 'colmap')
@@ -107,14 +111,16 @@ def run_colmap_waymo(result):
             mask = cv2.imread(new_mask_filename)
             flip_mask = (255 - mask).astype(np.uint8)
             cv2.imwrite(new_mask_filename, flip_mask)
-    
-    # https://colmap.github.io/faq.html#mask-image-regions
+    # 
+    # # https://colmap.github.io/faq.html#mask-image-regions
     os.system(f'colmap feature_extractor \
             --ImageReader.mask_path {mask_images_dir} \
             --ImageReader.camera_model SIMPLE_PINHOLE  \
             --ImageReader.single_camera_per_folder 1 \
             --database_path {colmap_dir}/database.db \
             --image_path {train_images_dir}')
+    print(f'ran feature extractor')
+    print(f'mask_images_dir: {mask_images_dir}\ndatabase_path: {colmap_dir}/database.db\nimage_path: {train_images_dir}')
 
     # load intrinsic
     camera_infos = dict()
@@ -261,22 +267,31 @@ def run_colmap_waymo(result):
 
     triangulated_dir = os.path.join(colmap_dir, 'triangulated/sparse/model')
     os.makedirs(triangulated_dir, exist_ok=True)
-    os.system(f'colmap point_triangulator \
-        --database_path {colmap_dir}/database.db \
-        --image_path {train_images_dir} \
-        --input_path {model_dir} \
-        --output_path {triangulated_dir} \
-        --Mapper.ba_refine_focal_length 0 \
-        --Mapper.ba_refine_principal_point 0 \
-        --Mapper.max_extra_param 0 \
-        --clear_points 0 \
-        --Mapper.ba_global_max_num_iterations 30 \
-        --Mapper.filter_max_reproj_error 4 \
-        --Mapper.filter_min_tri_angle 0.5 \
-        --Mapper.tri_min_angle 0.5 \
-        --Mapper.tri_ignore_two_view_tracks 1 \
-        --Mapper.tri_complete_max_reproj_error 4 \
-        --Mapper.tri_continue_max_angle_error 4')
+
+    command = [
+        'colmap', 'point_triangulator',
+        '--database_path', os.path.join(colmap_dir, 'database.db'),
+        '--image_path', train_images_dir,
+        '--input_path', model_dir,
+        '--output_path', triangulated_dir,
+        '--Mapper.ba_refine_focal_length', '0',
+        '--Mapper.ba_refine_principal_point', '0',
+        '--Mapper.max_extra_param', '0',
+        '--clear_points', '0',
+        '--Mapper.ba_global_max_num_iterations', '30',
+        '--Mapper.filter_max_reproj_error', '4',
+        '--Mapper.filter_min_tri_angle', '0.5',
+        '--Mapper.tri_min_angle', '0.5',
+        '--Mapper.tri_ignore_two_view_tracks', '1',
+        '--Mapper.tri_complete_max_reproj_error', '4',
+        '--Mapper.tri_continue_max_angle_error', '4'
+    ]
+    
+    try:
+        result = subprocess.run(command, check=True, capture_output=True, text=True)
+        print("COLMAP Point Triangulator Output:", result.stdout)
+    except subprocess.CalledProcessError as e:
+        print("Error running COLMAP Point Triangulator:", e.stderr)
     
     if cfg.data.use_colmap_pose:
         # May lead to unstable results when refining relative poses

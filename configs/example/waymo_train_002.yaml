@@ -7,8 +7,8 @@ data:
   split_train: 1
   type: Waymo
   white_background: false
-  selected_frames: [98, 198]
-  cameras: [0, 1, 2]
+  selected_frames: [0, 198]
+  cameras: [0, 1, 2, 3, 4]
   extent: 10
   use_colmap: true
   filter_colmap: true
@@ -26,10 +26,10 @@ model:
     opt_track: true
 
 train:
-  iterations: 50000
-  test_iterations: [7000, 30000, 50000]
-  save_iterations: [50000]
-  checkpoint_iterations: [50000]
+  iterations: 75000
+  test_iterations: [7000, 30000, 50000, 75000]
+  save_iterations: [50000, 75000]
+  checkpoint_iterations: [50000, 75000]
 
 optim:
   prune_box_interval: 100
@@ -75,4 +75,4 @@ optim:
 
 render:
   fps: 24
-  concat_cameras: [1, 0, 2]
+  concat_cameras: [3, 1, 0, 2, 4]

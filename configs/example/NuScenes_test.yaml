@@ -1,14 +1,14 @@
 task: waymo_full_exp
-source_path: ./data/waymo/training/031
-exp_name: waymo_train_031
+source_path: /home/q681861/Documents/test_scripts/scene-0856
+exp_name: NuScenes-0063
 
 data:
   split_test: -1
   split_train: 1
   type: Waymo
   white_background: false
-  selected_frames: [0, 198]
-  cameras: [0, 1, 2, 3, 4]
+  selected_frames: [0, 20]
+  cameras: [0, 1]
   extent: 10
   use_colmap: true
   filter_colmap: true
@@ -22,15 +22,15 @@ model:
     flip_prob: 0.
   nsg:
     include_bkgd: true
-    include_obj: true
+    include_obj: False
     include_sky: true
-    opt_track: true
+    opt_track: False
 
 train:
-  iterations: 75000
+  iterations: 10000
   test_iterations: [7000, 30000, 50000, 75000]
-  save_iterations: [75000]
-  checkpoint_iterations: [75000]
+  save_iterations: [10000]
+  checkpoint_iterations: [10000]
 
 optim:
   prune_box_interval: 100
@@ -75,4 +75,4 @@ optim:
 
 render:
   fps: 24
-  concat_cameras: [0, 2, 4]
+  concat_cameras: [0, 1]
